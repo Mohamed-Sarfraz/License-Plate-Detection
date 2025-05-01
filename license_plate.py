@@ -49,10 +49,23 @@ def process_image(pil_image):
     gray = rgb_to_gray(img)
     dilated = dilate_horizontal(gray)
     
-    # Horizontal edge processi
-
+    # Horizontal edge processing
+    col_hist = edge_histogram(dilated, axis=0)
+    col_hist_smooth = moving_average(col_hist)
+    col_mask = threshold_filter(col_hist_smooth, np.mean(col_hist_smooth))
     
-    return result, {
+    # Vertical edge processing
+    row_hist = edge_histogram(dilated, axis=1)
+    row_hist_smooth = moving_average(row_hist)
+    row_mask = threshold_filter(row_hist_smooth, np.mean(row_hist_smooth))
+    
+    # Extract probable plate region
+    boxed_image = find_plate_region(dilated, row_mask, col_mask)
+    
+    grayscale = Image.fromarray(gray)
+    dilated_img = Image.fromarray(dilated)
+    
+    return boxed_image, {
         "grayscale": grayscale,
         "dilated": dilated_img
     }
