@@ -1,22 +1,27 @@
-
 import streamlit as st
+import cv2
+import pytesseract
 import numpy as np
 from PIL import Image
-from license_plate import process_image
+from license_plate import process_image  # Importing the image processing function from license_plate.py
 
-st.set_page_config(page_title='License Plate Localization (No Inbuilt Functions)')
-st.title('License Plate Localization App')
-st.write('**Note:** This app avoids all inbuilt edge detection or image processing functions.')
+# Streamlit app title
+st.title("Car Number Plate Detection")
 
-uploaded_file = st.file_uploader("Upload a car image (JPG or PNG)", type=["jpg", "jpeg", "png"])
+# File uploader to upload an image
+uploaded_file = st.file_uploader("Upload a car image", type=["jpg", "png", "jpeg"])
 
 if uploaded_file is not None:
+    # Read the uploaded image
     image = Image.open(uploaded_file)
-    st.image(image, caption='Uploaded Image', use_column_width=True)
-    
-    st.write("Processing...")
-    result_img, intermediate_outputs = process_image(image)
-    
-    st.image(intermediate_outputs['grayscale'], caption='Grayscale Image', use_column_width=True)
-    st.image(intermediate_outputs['dilated'], caption='Dilated Image', use_column_width=True)
-    st.image(result_img, caption='Final Localized Plate Region', use_column_width=True)
+    image = np.array(image)
+
+    # Process the image to detect the number plate
+    number_plate_image, number_plate_text = process_image(image)
+
+    # Display results
+    if number_plate_image is not None:
+        st.image(number_plate_image, caption="Detected Number Plate", use_column_width=True)
+        st.write(f"Detected Number Plate Text: {number_plate_text}")
+    else:
+        st.write("No number plate detected.")
