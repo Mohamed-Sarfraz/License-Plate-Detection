@@ -1,6 +1,5 @@
-
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 
 def rgb_to_gray(img_array):
     r, g, b = img_array[:,:,0], img_array[:,:,1], img_array[:,:,2]
@@ -33,37 +32,25 @@ def threshold_filter(hist, avg):
     mask = hist >= avg
     return mask.astype(int)
 
-def mask_image(gray_img, row_mask, col_mask):
-    masked = gray_img.copy()
-    for i in range(gray_img.shape[0]):
-        if row_mask[i] == 0:
-            masked[i, :] = 0
-    for j in range(gray_img.shape[1]):
-        if col_mask[j] == 0:
-            masked[:, j] = 0
-    return masked
+def find_plate_region(gray_img, row_mask, col_mask):
+    row_indices = np.where(row_mask == 1)[0]
+    col_indices = np.where(col_mask == 1)[0]
+    if len(row_indices) == 0 or len(col_indices) == 0:
+        return Image.fromarray(gray_img)
+    top, bottom = row_indices[0], row_indices[-1]
+    left, right = col_indices[0], col_indices[-1]
+    img_boxed = Image.fromarray(gray_img).convert("RGB")
+    draw = ImageDraw.Draw(img_boxed)
+    draw.rectangle([left, top, right, bottom], outline="red", width=2)
+    return img_boxed
 
 def process_image(pil_image):
     img = np.array(pil_image.resize((400, 300)))  # Resize for simplicity
     gray = rgb_to_gray(img)
     dilated = dilate_horizontal(gray)
     
-    # Horizontal edge processing
-    col_hist = edge_histogram(dilated, axis=0)
-    col_hist_smooth = moving_average(col_hist)
-    col_mask = threshold_filter(col_hist_smooth, np.mean(col_hist_smooth))
-    
-    # Vertical edge processing
-    row_hist = edge_histogram(dilated, axis=1)
-    row_hist_smooth = moving_average(row_hist)
-    row_mask = threshold_filter(row_hist_smooth, np.mean(row_hist_smooth))
-    
-    # Final Mask
-    final = mask_image(dilated, row_mask, col_mask)
-    
-    result = Image.fromarray(final)
-    grayscale = Image.fromarray(gray)
-    dilated_img = Image.fromarray(dilated)
+    # Horizontal edge processi
+
     
     return result, {
         "grayscale": grayscale,
