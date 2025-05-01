@@ -1,15 +1,11 @@
-import streamlit as st
 import cv2
 import pytesseract
 import numpy as np
-from PIL import Image
 
-# Set tesseract path if it's not in the PATH environment variable
-# (Windows users need to specify the path to tesseract executable)
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+# Set tesseract path if it's not in the PATH environment variable (Windows example)
+# pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
-# Function to detect the number plate from an image
-def detect_number_plate(image):
+def process_image(image):
     # Convert image to grayscale
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -35,28 +31,3 @@ def detect_number_plate(image):
             return number_plate_region, number_plate_text.strip()
     return None, None
 
-# Streamlit app interface
-def main():
-    st.title('Car Number Plate Detection')
-    
-    st.write("Upload a car image to detect the number plate.")
-
-    # Upload image
-    uploaded_file = st.file_uploader("Choose a car image...", type=["jpg", "png", "jpeg"])
-    
-    if uploaded_file is not None:
-        # Read and display the uploaded image
-        image = Image.open(uploaded_file)
-        image = np.array(image)
-
-        # Detect number plate
-        number_plate_image, number_plate_text = detect_number_plate(image)
-
-        if number_plate_image is not None:
-            st.image(number_plate_image, caption="Detected Number Plate", use_column_width=True)
-            st.write(f"Detected Number Plate Text: {number_plate_text}")
-        else:
-            st.write("No number plate detected.")
-
-if __name__ == "__main__":
-    main()
